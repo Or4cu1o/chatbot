@@ -55,7 +55,6 @@ x-n8n_runner: &n8n_runner
 
 # --- INFRAESTRUTURA BASE ---
 services:
-
   postgres_chatbot:
     image: pgvector/pgvector:pg16
     container_name: postgres_chatbot
@@ -108,12 +107,12 @@ services:
       - minio_data:/data
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.minio.rule=Host(`s3-minio.local`)"
-      - "traefik.http.routers.minio.service=minio-api"
-      - "traefik.http.services.minio-api.loadbalancer.server.port=9000"
-      - "traefik.http.routers.minio-console.rule=Host(`console-minio.local`)"
-      - "traefik.http.routers.minio-console.service=minio-console"
-      - "traefik.http.services.minio-console.loadbalancer.server.port=9001"
+      - "traefik.http.routers.minio_api.rule=Host(`s3-minio.local`)"
+      - "traefik.http.routers.minio_api.service=minio-api"
+      - "traefik.http.services.minio_api.loadbalancer.server.port=9000"
+      - "traefik.http.routers.minio_console.rule=Host(`console-minio.local`)"
+      - "traefik.http.routers.minio_console.service=minio-console"
+      - "traefik.http.services.minio_console.loadbalancer.server.port=9001"
       - "traefik.docker.network=rede_proxy"
     networks:
       - rede_chatbot
@@ -125,7 +124,7 @@ services:
     depends_on:
       - minio_chatbot
     entrypoint: >
-      /bin/sh -c " sleep 10; /usr/bin/mc alias set minio http://minio_chatbot:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASS}; /usr/bin/mc mb --ignore-existing minio/typebot minio/chatwoot minio/evolution; /usr/bin/mc anonymous set public minio/typebot/public; exit 0; "
+      /bin/sh -c " sleep 10; /usr/bin/mc alias set minio http://minio_chatbot:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASS}; /usr/bin/mc mb --ignore-existing minio/typebot; /usr/bin/mc anonymous set public minio/typebot/public; /usr/bin/mc mb --ignore-existing minio/chatwoot; /usr/bin/mc anonymous set public minio/chatwoot/public; exit 0; "
     networks:
       - rede_chatbot
 
@@ -142,8 +141,8 @@ services:
       - evolution_instances:/evolution/instances
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.evolution.rule=Host(`api-evolution.local`)"
-      - "traefik.http.services.evolution.loadbalancer.server.port=8080"
+      - "traefik.http.routers.evolution_api.rule=Host(`api-evolution.local`)"
+      - "traefik.http.services.evolution_api.loadbalancer.server.port=8080"
       - "traefik.docker.network=rede_proxy"
 
   evolution_frontend:
@@ -156,8 +155,8 @@ services:
         condition: service_started
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.evofront.rule=Host(`manager-evolution.local`)"
-      - "traefik.http.services.evofront.loadbalancer.server.port=80"
+      - "traefik.http.routers.evolution_frontend.rule=Host(`manager-evolution.local`)"
+      - "traefik.http.services.evolution_frontend.loadbalancer.server.port=80"
       - "traefik.docker.network=rede_proxy"
     volumes:
       # Patch de correção do Nginx aplicado e testado - 10/03/2026.
@@ -174,8 +173,8 @@ services:
       - REDIS_URL=redis://:${REDIS_PASS}@redis_chatbot:6379/2
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.typebot-builder.rule=Host(`builder-typebot.local`)"
-      - "traefik.http.services.typebot-builder.loadbalancer.server.port=3000"
+      - "traefik.http.routers.typebot_builder.rule=Host(`builder-typebot.local`)"
+      - "traefik.http.services.typebot_builder.loadbalancer.server.port=3000"
       - "traefik.docker.network=rede_proxy"
 
   typebot_viewer:
@@ -188,8 +187,8 @@ services:
       - REDIS_URL=redis://:${REDIS_PASS}@redis_chatbot:6379/2
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.typebot-viewer.rule=Host(`viewer-typebot.local`)"
-      - "traefik.http.services.typebot-viewer.loadbalancer.server.port=3000"
+      - "traefik.http.routers.typebot_viewer.rule=Host(`viewer-typebot.local`)"
+      - "traefik.http.services.typebot_viewer.loadbalancer.server.port=3000"
       - "traefik.docker.network=rede_proxy"
 
   # --- CHATWOOT ---
@@ -271,14 +270,33 @@ services:
       - N8N_RUNNERS_AUTH_TOKEN=${RUNNERS_AUTH_TOKEN}
       - N8N_RUNNERS_TASK_BROKER_URI=http://n8n_worker:5679
 
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit_chatbot
+    <<: [ *base, *servicebase ]
+    environment:
+      - MP_MAX_MESSAGES=5000
+      - MP_DATABASE=/data/mailpit.db
+      - MP_SMTP_AUTH_ACCEPT_ANY=1
+      - MP_SMTP_AUTH_ALLOW_INSECURE=1
+      - TZ=America/Sao_Paulo
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mailpit.rule=Host(`mail-chatbot.local`)"
+      - "traefik.http.services.mailpit.loadbalancer.server.port=8025"
+      - "traefik.docker.network=rede_proxy"
+
 # --- REDES E VOLUMES DEFINITIVOS ---
 networks:
   rede_chatbot:
+    internal: true
     name: rede_chatbot
     driver: bridge
+    attachable: true
   rede_proxy:
     external: true
     name: rede_proxy
+    attachable: true
 
 volumes:
   postgres_data:
