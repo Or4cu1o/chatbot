@@ -123,8 +123,11 @@ services:
     container_name: minio_setup
     depends_on:
       - minio_chatbot
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASS: ${MINIO_ROOT_PASS}
     entrypoint: >
-      /bin/sh -c " sleep 10; /usr/bin/mc alias set minio http://minio_chatbot:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASS}; /usr/bin/mc mb --ignore-existing minio/typebot; /usr/bin/mc anonymous set public minio/typebot/public; /usr/bin/mc mb --ignore-existing minio/chatwoot; /usr/bin/mc anonymous set public minio/chatwoot/public; exit 0; "
+      /bin/sh -c " sleep 10; /usr/bin/mc alias set minio http://minio_chatbot:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASS}; /usr/bin/mc mb --ignore-existing minio/typebot; /usr/bin/mc anonymous set public minio/typebot/public; exit 0; "
     networks:
       - rede_chatbot
 
@@ -289,14 +292,14 @@ services:
 # --- REDES E VOLUMES DEFINITIVOS ---
 networks:
   rede_chatbot:
-    internal: true
     name: rede_chatbot
+    internal: true
+    external: false
     driver: bridge
-    attachable: true
+    attachable: false
   rede_proxy:
-    external: true
     name: rede_proxy
-    attachable: true
+    external: true
 
 volumes:
   postgres_data:
