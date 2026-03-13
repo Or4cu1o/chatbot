@@ -1,0 +1,25 @@
+name: chatbot-ports
+
+services:
+  minio-chatbot:
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+  evolution-api:
+    ports:
+      - "3005:8080"
+  evolution-frontend:
+    ports:
+      - "3004:80"
+  typebot-builder:
+    ports:
+      - "3002:3000"
+  typebot-viewer:
+    ports:
+      - "3003:3000"
+  chatwoot-rails:
+    ports:
+      - "3000:3000"
+  n8n:
+    ports:
+      - "3001:5678"

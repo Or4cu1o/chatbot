@@ -1,0 +1,80 @@
+name: chatbot-traefik-http
+
+services:
+  minio-chatbot:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=rede_proxy"
+      # API (Porta 9000)
+      - "traefik.http.routers.minio-api.service=minio-api"
+      - "traefik.http.routers.minio-api.rule=Host(`s3-minio.${DOMAIN}`)"
+      - "traefik.http.routers.minio-api.entrypoints=web"
+      - "traefik.http.services.minio-api.loadbalancer.server.port=9000"
+      # CONSOLE (Porta 9001)
+      - "traefik.http.routers.minio-console.service=minio-console"
+      - "traefik.http.routers.minio-console.rule=Host(`console-minio.${DOMAIN}`)"
+      - "traefik.http.routers.minio-console.entrypoints=web"
+      - "traefik.http.services.minio-console.loadbalancer.server.port=9001"
+      # Configuração do Traefik para MinIO
+
+  evolution-api:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=rede_proxy"
+      - "traefik.http.routers.evolution-api.service=evolution-api"
+      - "traefik.http.routers.evolution-api.rule=Host(`api-evolution.${DOMAIN}`)"
+      - "traefik.http.routers.evolution-api.entrypoints=web"
+      - "traefik.http.services.evolution-api.loadbalancer.server.port=8080"
+
+  evolution-frontend:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.evolution-frontend.service=evolution-frontend"
+      - "traefik.http.routers.evolution-frontend.rule=Host(`manager-evolution.${DOMAIN}`)"
+      - "traefik.http.routers.evolution-frontend.entrypoints=web"
+      - "traefik.http.services.evolution-frontend.loadbalancer.server.port=80"
+      - "traefik.docker.network=rede_proxy"
+
+  typebot-builder:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.typebot-builder.service=typebot-builder"
+      - "traefik.http.routers.typebot-builder.rule=Host(`builder-typebot.${DOMAIN}`)"
+      - "traefik.http.routers.typebot-builder.entrypoints=web"
+      - "traefik.http.services.typebot-builder.loadbalancer.server.port=3000"
+      - "traefik.docker.network=rede_proxy"
+
+  typebot-viewer:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.typebot-viewer.service=typebot-viewer"
+      - "traefik.http.routers.typebot-viewer.rule=Host(`viewer-typebot.${DOMAIN}`)"
+      - "traefik.http.routers.typebot-viewer.entrypoints=web"
+      - "traefik.http.services.typebot-viewer.loadbalancer.server.port=3000"
+      - "traefik.docker.network=rede_proxy"
+
+  chatwoot-rails:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.chatwoot-rails.service=chatwoot-rails"
+      - "traefik.http.routers.chatwoot-rails.rule=Host(`chatwoot.${DOMAIN}`)"
+      - "traefik.http.routers.chatwoot-rails.entrypoints=web"
+      - "traefik.http.services.chatwoot-rails.loadbalancer.server.port=3000"
+      - "traefik.docker.network=rede_proxy"
+
+  n8n:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.n8n.service=n8n"
+      - "traefik.http.routers.n8n.rule=Host(`n8n.${DOMAIN}`)"
+      - "traefik.http.routers.n8n.entrypoints=web"
+      - "traefik.http.services.n8n.loadbalancer.server.port=5678"
+      - "traefik.docker.network=rede_proxy"
+
+networks:
+  rede_proxy:
+    external: true
+    name: rede_proxy
+  rede_chatbot:
+    name: rede_chatbot
+    driver: bridge
