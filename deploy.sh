@@ -18,7 +18,16 @@ NC='\033[0m' # No Color
 # ==============================================================================
 # MOTOR DE LOGS E SAÍDA
 # ==============================================================================
-# Cria o arquivo de log e blinda as permissões (apenas root pode ler)
+set -o pipefail
+
+catch_error() {
+    local exit_code=$1
+    local line_number=$2
+    echo -e "\n${RED}[FALHA CRÍTICA] O script abortou na linha ${line_number} (Código de saída: ${exit_code}).${NC}"
+    echo -e "${YELLOW}A causa exata do erro está detalhada no terminal acima e salva no log: $LOG_PATH${NC}\n"
+}
+trap 'catch_error $? $LINENO' ERR
+
 touch "$LOG_PATH"
 chmod 600 "$LOG_PATH"
 
@@ -338,9 +347,10 @@ if [[ "$USE_DOCOPS" =~ ^[Ss]$ ]]; then
     fi
 fi
 
-log "\n${GREEN}Iniciando *pull* de imagens e alocação de contêineres...${NC}"
-eval "$COMPOSE_CMD pull" >> "$LOG_PATH" 2>&1
-eval "$COMPOSE_CMD up -d" >> "$LOG_PATH" 2>&1
+log "\n${GREEN}Iniciando *pull* de imagens e alocação de contêineres... (Progresso em tempo real)${NC}"
+
+eval "$COMPOSE_CMD pull" 2>&1 | tee -a "$LOG_PATH"
+eval "$COMPOSE_CMD up -d" 2>&1 | tee -a "$LOG_PATH"
 
 # ==============================================================================
 # 8. ARTEFATOS FINAIS
