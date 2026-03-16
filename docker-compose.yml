@@ -110,7 +110,7 @@ services:
       MINIO_ROOT_PASS: ${MINIO_ROOT_PASS}
     entrypoint: |
       /bin/sh -c "
-      sleep 10;
+      sleep 20;
       # 1. Configuramos o alias com aspas fortes para evitar erro de hostname
       /usr/bin/mc alias set chatbot http://minio-chatbot:9000 \"$${MINIO_ROOT_USER}\" \"$${MINIO_ROOT_PASS}\";
 
@@ -136,6 +136,7 @@ services:
     environment:
       - DATABASE_CONNECTION_URI=postgresql://evolution_user:${DB_PASS_EVOLUTION}@postgres-chatbot:5432/evolution_db?schema=evolution_api
       - CACHE_REDIS_URI=redis://:${REDIS_PASS}@redis-chatbot:6379/1
+      - CHATWOOT_IMPORT_DATABASE_CONNECTION_URI=postgresql://chatwoot_user:${DB_PASS_CHATWOOT}@postgres-chatbot:5432/chatwoot_db?sslmode=disable
     volumes:
       - evolution_instances:/evolution/instances
 
@@ -149,7 +150,7 @@ services:
         condition: service_started
     volumes:
       # Patch de correção do Nginx aplicado e testado - 10/03/2026.
-      - ~/projet-paralel/evolution-manager-v2/.docker/nginx.conf:/etc/nginx/conf.d/nginx.conf:ro
+      - ./config/nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf:ro
 
   # --- TYPEBOT ---
   typebot-builder:
@@ -179,6 +180,7 @@ services:
     environment:
       - POSTGRES_PASSWORD=${DB_PASS_CHATWOOT}
       - REDIS_URL=redis://:${REDIS_PASS}@redis-chatbot:6379/3
+      - REDIS_PASSWORD=${REDIS_PASS}
     entrypoint: docker/entrypoints/rails.sh
     command: [ 'bundle', 'exec', 'rails', 's', '-p', '3000', '-b', '0.0.0.0' ]
     volumes:
@@ -236,8 +238,8 @@ services:
 # --- REDES E VOLUMES DEFINITIVOS ---
 networks:
   rede_proxy:
+    external: true
     name: rede_proxy
-    driver: bridge
   rede_chatbot:
     name: rede_chatbot
     driver: bridge
