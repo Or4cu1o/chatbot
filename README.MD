@@ -1,84 +1,75 @@
-# 🚀 Plataforma de Atendimento Multi-Operador (Chatbot Stack)
+# Orquestrador de Ecossistema Chatbot
 
-Infraestrutura de alta performance para orquestração de atendimento omnichannel e automação de fluxos. O ecossistema opera sob arquitetura de microsserviços em contêineres, blindado e otimizado para escalabilidade.
+### O que é
 
-## 📐 Topologia Visual
+Uma infraestrutura conteinerizada de alta performance para operações de atendimento, automação e mensageria corporativa.
 
-![Fluxograma da Arquitetura](assets/fuxograma.png)
+### 🏗️ Arquitetura e Fluxo de Integração
 
-## ⚙️ Stack Tecnológico
+O ecossistema opera de forma interconectada, onde webhooks e APIs garantem a fluidez das mensagens entre o cliente final, a automação e o atendimento humano.
 
-A planta consolida os seguintes motores em uma única rede de processamento:
+![Fluxo de Integração do Chatbot](./assets/fuxograma.png)
 
-- **Evolution API (v2):** Motor central de disparos e integração WhatsApp.
-- **Chatwoot:** Plataforma de atendimento humano (Rails + Sidekiq).
-- **Typebot:** Construtor visual de fluxos de conversação (Builder & Viewer).
-- **n8n:** Orquestrador lógico e de automação (Topologia distribuída com Workers e Runners em _sandbox_).
-- **PostgreSQL (pgvector):** Banco de dados relacional unificado com suporte a IA.
-- **Redis (AOF Mode):** Motor de fila (_broker_) e cache de alta resiliência.
-- **MinIO:** Armazenamento de objetos (S3 Compatible) para mídias e anexos.
-- **Traefik:** _API Gateway_ e balanceador de carga externo.
+### 📦 Aplicações Integradas
 
-## 📁 Estrutura de Diretórios
+O ecossistema provisiona e orquestra automaticamente os seguintes serviços:
 
-O servidor hospedeiro exige a seguinte simetria estrutural para injeção de volumes e credenciais:
+- **Traefik v3:** Proxy reverso de borda e balanceador de carga. Responsável pelo roteamento de tráfego HTTP/HTTPS e emissão automatizada de certificados SSL via Let's Encrypt.
+- **PostgreSQL 16 (pgvector):** Motor de banco de dados relacional central. Armazena de forma isolada os dados estruturados do Chatwoot, Typebot, Evolution API e n8n.
+- **Redis 7:** Banco de dados em memória de altíssimo desempenho. Atua como sistema de cache, gerenciador de filas de processamento assíncrono e limitador de taxa (_rate-limit_).
+- **MinIO:** Servidor de armazenamento de objetos compatível com Amazon S3. Fornece a infraestrutura local para hospedagem de mídias, arquivos de conversas e _backups_.
+- **Evolution API:** Motor de integração de mensageria (WhatsApp). Gerencia sessões, webhooks e o tráfego de mensagens entre a rede social e as plataformas de atendimento.
+- **Evolution Manager:** Interface gráfica (Frontend) para gestão facilitada de instâncias, conexões e configurações da Evolution API.
+- **Chatwoot:** Plataforma _omnichannel_ de atendimento ao cliente (CRM/Inbox). Centraliza o suporte humano e o histórico de conversações. Opera com instâncias dedicadas para a aplicação (Rails) e processamento em segundo plano (Sidekiq).
+- **Typebot:** Construtor visual avançado para fluxos de conversação automatizada. Fragmentado em duas camadas operacionais: _Builder_ (criação visual de fluxos) e _Viewer_ (motor de execução e renderização para os usuários finais).
+- **n8n:** Orquestrador de automação de fluxos de trabalho. Configurado em topologia escalável avançada (modo de fila com _Workers_ e _Runners_), responsável por interligar todos os sistemas via APIs e Webhooks.
+- **Mailpit:** Servidor SMTP interno. Atua como interceptador e roteador de e-mails transacionais gerados pelo ecossistema, dispensando a necessidade imediata de provedores externos para notificações do sistema.
+- **DocOps:** Painel de monitoramento e visibilidade de infraestrutura. Fornece métricas e controle em tempo real sobre a saúde dos contêineres Docker do ambiente host.
 
-```text
-chatbot/
-├── assets/
-│   └── fuxograma.png
-├── envs/
-│   ├── chatwoot.env
-│   ├── evolution.env
-│   ├── n8n.env
-│   └── typebot.env
-├── scripts/
-├── .env                  <-- Cofre Mestre de Variáveis
-├── docker-compose.yml    <-- Manifesto de Orquestração
-└── init-databases.sh     <-- Script de Provisionamento de Bancos
+### 🚀 Como Executar
 
-```
+**1. Pré-requisitos**
 
-## 🔒 Protocolo de Ignição
+- Sistema Operacional Linux (Debian/Ubuntu ou RHEL/CentOS).
+- Privilégios de superusuário (root).
+- Um domínio principal com apontamento DNS (Tipo A) configurado para o IP do servidor (caso utilize HTTPS via Traefik).
 
-### 1. Preparação do Hospedeiro
-
-Para garantir a resolução de nomes (DNS) correta no ambiente de desenvolvimento, atualize o arquivo `hosts` da máquina de teste (ex: `/etc/hosts`):
-
-```text
-127.0.0.1 s3-minio.local console-minio.local api-evolution.local manager-evolution.local builder-typebot.local viewer-typebot.local chatwoot.local n8n.local
-
-```
-
-### 2. Permissões de Execução
-
-O motor do PostgreSQL exige elevação de privilégio para injetar as credenciais iniciais:
+**2. Implantação Automatizada**
+Faça o download do script orquestrador e inicie o deploy interativo. O assistente cuidará da clonagem, auditoria de dependências, geração segura de credenciais criptográficas e inicialização da malha de rede.
 
 ```bash
-chmod +x init-databases.sh
+wget [https://raw.githubusercontent.com/Or4cu1o/chatbot/main/deploy.sh](https://raw.githubusercontent.com/Or4cu1o/chatbot/main/deploy.sh)
+chmod +x deploy.sh
+sudo ./deploy.sh
 
 ```
 
-### 3. Acionamento
+**3. URLs de Acesso**
+Após o status _healthy_ de todos os contêineres, os serviços estarão disponíveis nos subdomínios vinculados ao seu domínio base (exemplo considerando HTTPS):
 
-A partir da raiz do diretório `chatbot`, execute a ordem de levantamento dos motores em segundo plano:
+- **Automação:** `https://n8n.<seu-dominio>`
+- **Atendimento:** `https://chatwoot.<seu-dominio>`
+- **Criação de Bots:** `https://builder-typebot.<seu-dominio>`
+- **Visualização de Bots:** `https://viewer-typebot.<seu-dominio>`
+- **API de Mensageria:** `https://api-evolution.<seu-dominio>`
+- **Gestão de Mensageria:** `https://manager-evolution.<seu-dominio>`
+- **Armazenamento S3:** `https://console-minio.<seu-dominio>`
+- **E-mail Interno:** `https://mail-chatbot.<seu-dominio>`
+- **Monitoramento:** `https://monitor.<seu-dominio>`
+
+**4. Gerenciamento Pós-Deploy**
+Para iniciar ou parar a infraestrutura de forma segura após a instalação inicial, acesse o diretório da aplicação e utilize os scripts de rotina gerados automaticamente:
 
 ```bash
-docker compose up -d
+./start.sh
+./stop.sh
 
 ```
 
-### 4. Auditoria de Provisionamento
-
-Para atestar que os bancos de dados foram forjados com sucesso via script:
-
-```bash
-docker compose logs -f postgres_chatbot
-
 ```
 
-## ⚠️ Manutenção e Escalabilidade
+O repositório agora possui uma fundação arquitetural sólida, scripts de implantação resilientes e documentação clara.
 
-- **Logs:** A rotação de logs está limitada a 60MB por contêiner (3 arquivos de 20MB) via `json-file` para evitar o estrangulamento do disco.
-- **Persistência:** O Redis opera em modo `--appendonly yes`. Desligamentos abruptos não corromperão a fila do n8n ou as tarefas do Sidekiq.
-- **Isolamento:** Variáveis de banco presentes na pasta `envs/` são implacavelmente sobrescritas no momento do _boot_ pelas credenciais centrais do `.env` mestre. Nunca declare senhas definitivas nos arquivos secundários.
+A fase de infraestrutura está estabilizada. Deseja iniciar o mapeamento dos fluxos lógicos dentro do n8n para a orquestração do atendimento, ou encerramos este protocolo de configuração?
+
+```
