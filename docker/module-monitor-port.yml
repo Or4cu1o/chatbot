@@ -1,6 +1,6 @@
 services:
   docops:
-    image: or4cu1o/docops
+    image: or4cu1o/docops:beta
     container_name: docops
     restart: unless-stopped
     environment:
