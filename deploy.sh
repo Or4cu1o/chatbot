@@ -378,6 +378,29 @@ log "\n${BLUE}=====================================================${NC}"
 log "${GREEN}   Operação Concluída com Sucesso.${NC}"
 log "${BLUE}=====================================================${NC}"
 log "Diretório base: $DEPLOY_DIR"
-log "Para visualizar as senhas geradas e os detalhes de acesso:"
+
+log "\n${YELLOW}================ APONTAMENTOS DNS E URLs =================${NC}"
+log "Crie os apontamentos (Tipo A) no seu provedor de domínio"
+log "direcionando os subdomínios abaixo para o IP deste servidor."
+log "----------------------------------------------------------"
+log "Automação (n8n):           ${PROTOCOL}://n8n.${DOMAIN}"
+log "Atendimento (Chatwoot):    ${PROTOCOL}://chatwoot.${DOMAIN}"
+log "Criação (Typebot Builder): ${PROTOCOL}://builder-typebot.${DOMAIN}"
+log "Motor (Typebot Viewer):    ${PROTOCOL}://viewer-typebot.${DOMAIN}"
+log "API de Mensageria:         ${PROTOCOL}://api-evolution.${DOMAIN}"
+log "Gestão de Mensageria:      ${PROTOCOL}://manager-evolution.${DOMAIN}"
+log "Painel S3 (MinIO):         ${PROTOCOL}://console-minio.${DOMAIN}"
+log "API S3 (Endpoint MinIO):   ${PROTOCOL}://s3-minio.${DOMAIN}"
+
+if [[ "$USE_MAILPIT" =~ ^[Ss]$ ]]; then
+    log "E-mail Interno (Mailpit):  ${PROTOCOL}://mail-chatbot.${DOMAIN}"
+fi
+
+if [[ "$USE_DOCOPS" =~ ^[Ss]$ ]]; then
+    log "Monitor Docker (DocOps):   ${PROTOCOL}://monitor.${DOMAIN}"
+fi
+log "==========================================================\n"
+
+log "Para visualizar as senhas dos bancos e chaves das APIs geradas:"
 log "${YELLOW}cat $LOG_PATH${NC}"
 log "====================================================="
