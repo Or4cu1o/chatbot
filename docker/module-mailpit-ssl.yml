@@ -2,7 +2,7 @@ services:
   mailpit-chatbot:
     image: axllent/mailpit:latest
     container_name: mailpit-chatbot
-    <<: [ *base, *servicebase ]
+    restart: always
     environment:
       - MP_MAX_MESSAGES=5000
       - MP_DATABASE=/data/mailpit.db
@@ -19,6 +19,9 @@ services:
       - "traefik.http.services.mailpit-chatbot.loadbalancer.server.port=8025"
     volumes:
       - mailpit_data:/data
+    networks:
+      - rede_proxy
+      - rede_chatbot
 
 volumes:
   mailpit_data:
