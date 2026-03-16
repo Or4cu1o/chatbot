@@ -38,9 +38,11 @@ O ecossistema provisiona e orquestra automaticamente os seguintes serviços:
 Faça o download do script orquestrador e inicie o deploy interativo. O assistente cuidará da clonagem, auditoria de dependências, geração segura de credenciais criptográficas e inicialização da malha de rede.
 
 ```bash
-wget [https://raw.githubusercontent.com/Or4cu1o/chatbot/main/deploy.sh](https://raw.githubusercontent.com/Or4cu1o/chatbot/main/deploy.sh)
-chmod +x deploy.sh
-sudo ./deploy.sh
+# 1. Eleve o privilégio para superusuário
+sudo su
+
+# 2. Execute o orquestrador
+bash <(curl -sSL https://raw.githubusercontent.com/Or4cu1o/chatbot/main/deploy.sh)
 ```
 
 **3. URLs de Acesso**
