@@ -1,6 +1,5 @@
 name: chatbot
 
-# --- ÂNCORAS ---
 x-base: &base
   restart: always
   logging:
