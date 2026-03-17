@@ -1,5 +1,8 @@
 #!/bin/bash
 set -e
+set -o pipefail
+
+
 
 # ==============================================================================
 # VARIÁVEIS GLOBAIS DE AMBIENTE
@@ -18,7 +21,9 @@ NC='\033[0m' # No Color
 # ==============================================================================
 # MOTOR DE LOGS E SAÍDA
 # ==============================================================================
-set -o pipefail
+
+REAL_USER=${SUDO_USER:-$USER}
+REAL_PRIMARY_GROUP=$(id -gn "$REAL_USER")
 
 catch_error() {
     local exit_code=$1
@@ -219,7 +224,7 @@ RAW_HASH=$(htpasswd -nB admin 2>/dev/null || echo "admin:\$apr1\$H6uskkkW\$IgXLP
 TRAEFIK_AUTH=$(echo "$RAW_HASH" | sed 's/\$/\$\$/g')
 
 EVO_API_KEY=$(openssl rand -hex 16)
-TYPEBOT_SECRET=$(openssl rand -hex 16)
+TYPEBOT_SECRET=$(openssl rand -base64 24)
 CHATWOOT_SECRET=$(openssl rand -hex 32)
 
 IS_SECURE="false"
@@ -355,6 +360,20 @@ eval "$COMPOSE_CMD run --rm chatwoot-rails bundle exec rails db:chatwoot_prepare
 
 log "\n${GREEN}Iniciando a malha de serviços em background...${NC}"
 eval "$COMPOSE_CMD up -d" 2>&1 | tee -a "$LOG_PATH"
+
+# ==============================================================================
+# RESTAURAÇÃO DE PROPRIEDADE (NOVO)
+# ==============================================================================
+log "\n${YELLOW}Sincronizando permissões: Devolvendo propriedade para $REAL_USER...${NC}"
+chown -R "$REAL_USER":"$REAL_PRIMARY_GROUP" "$DEPLOY_DIR"
+
+# Garante que os logs de execução também sejam acessíveis para leitura
+chown "$REAL_USER":"$REAL_PRIMARY_GROUP" "$LOG_PATH"
+
+# Garante que os scripts permaneçam executáveis após a troca de dono
+chmod +x "$DEPLOY_DIR"/*.sh
+chmod +x "$DEPLOY_DIR"/scripts/*.sh 2>/dev/null || true
+
 
 # ==============================================================================
 # 8. ARTEFATOS FINAIS
