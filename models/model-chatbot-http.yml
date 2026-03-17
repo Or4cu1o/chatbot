@@ -13,7 +13,6 @@ services:
       - "traefik.http.routers.minio-console.rule=Host(`console-minio.${DOMAIN}`)"
       - "traefik.http.routers.minio-console.entrypoints=web"
       - "traefik.http.services.minio-console.loadbalancer.server.port=9001"
-      # Configuração do Traefik para MinIO
 
   evolution-api:
     labels:

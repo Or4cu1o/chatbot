@@ -1,3 +1,4 @@
+# vscode-language: dockercompose
 name: chatbot
 
 x-base: &base
