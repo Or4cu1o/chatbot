@@ -608,11 +608,15 @@ log "${GREEN}docker-compose.yml montado nativamente com sucesso.${NC}"
 log "\n${YELLOW}[9/10] Preparando permissões dos arquivos finais...${NC}"
 chown -R "$REAL_USER":"$REAL_PRIMARY_GROUP" "$DEPLOY_DIR"
 chown "$REAL_USER":"$REAL_PRIMARY_GROUP" "$LOG_PATH"
+log "${GREEN}Permissões ajustadas com sucesso para o usuário ${REAL_USER}.${NC}"
 
-log "\n${YELLOW}[10/10] Preparando banco de dados do Chatwoot e exportando instruções...${NC}"
-# Chatwoot DB Prepare
+log "\n${YELLOW}[10/10] Baixando imagens (pull) e preparando banco do Chatwoot...${NC}"
+# Forçando TTY explícito no pull prévio para preservar as barras de progresso
+docker compose pull --ignore-pull-failures 
+
+# Preparando o banco de dados (as imagens já estão cacheadas, logo não quebra a tela)
+log "\nProcessando as instâncias estruturais..."
 docker compose run --rm chatwoot-rails bundle exec rails db:chatwoot_prepare
-
 # Geração de Instruções de Acesso
 INSTRUCTIONS_FILE="${DEPLOY_DIR}/instrucoes_acesso.txt"
 
