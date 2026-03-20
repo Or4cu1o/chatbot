@@ -129,15 +129,30 @@ fi
 # 5. CLONAGEM DO REPOSITÓRIO
 # ==============================================================================
 log "\n${YELLOW}[3/10] Clonando repositório base...${NC}"
-if [ -d "$DEPLOY_DIR" ]; then
-    log "Encontrado diretório anterior. Movendo para backup..."
-    rm -rf "${DEPLOY_DIR}.bak"
-    mv "$DEPLOY_DIR" "${DEPLOY_DIR}.bak"
-fi
+if [[ "$1" == "--local" ]]; then
+    log "Modo de desenvolvimento ativado (--local). Ignorando download do GitHub..."
+    DEPLOY_DIR="$PWD"
+else
+    if [ -d "$DEPLOY_DIR" ]; then
+        log "Encontrado diretório anterior. Movendo para backup..."
+        rm -rf "${DEPLOY_DIR}.bak"
+        mv "$DEPLOY_DIR" "${DEPLOY_DIR}.bak"
+    fi
 
-git clone -q "$GITHUB_REPO_URL" "$DEPLOY_DIR"
-cd "$DEPLOY_DIR"
-log "${GREEN}Repositório clonado em $DEPLOY_DIR${NC}"
+    max_retries=3
+    count=0
+    while [ $count -lt $max_retries ]; do
+        log "Baixando arquivos do repositório (Tentativa $((count+1))/$max_retries)..."
+        if git clone -q "$GITHUB_REPO_URL" "$DEPLOY_DIR"; then
+            log "${GREEN}Repositório clonado em $DEPLOY_DIR${NC}"
+            break
+        fi
+        count=$((count + 1))
+        [ $count -eq $max_retries ] && { log "${RED}Falha ao clonar o repositório após várias tentativas.${NC}"; exit 1; }
+        sleep 2
+    done
+    cd "$DEPLOY_DIR"
+fi
 
 # ==============================================================================
 # 6. ANAMNESE PRE-DEPLOY
@@ -596,7 +611,7 @@ chown "$REAL_USER":"$REAL_PRIMARY_GROUP" "$LOG_PATH"
 
 log "\n${YELLOW}[10/10] Preparando banco de dados do Chatwoot e exportando instruções...${NC}"
 # Chatwoot DB Prepare
-docker compose run --rm chatwoot-rails bundle exec rails db:chatwoot_prepare 2>&1 | tee -a "$LOG_PATH"
+docker compose run --rm chatwoot-rails bundle exec rails db:chatwoot_prepare
 
 # Geração de Instruções de Acesso
 INSTRUCTIONS_FILE="${DEPLOY_DIR}/instrucoes_acesso.txt"
