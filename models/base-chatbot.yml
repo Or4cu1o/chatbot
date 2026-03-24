@@ -167,6 +167,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://typebot_user:${DB_PASS_TYPEBOT}@postgres-chatbot:5432/typebot_db
       - REDIS_URL=redis://:${REDIS_PASS}@redis-chatbot:6379/2
+    entrypoint: /bin/sh -c "export HOSTNAME=0.0.0.0 && ./builder-entrypoint.sh"
 
 
   typebot-viewer:
@@ -179,6 +180,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://typebot_user:${DB_PASS_TYPEBOT}@postgres-chatbot:5432/typebot_db
       - REDIS_URL=redis://:${REDIS_PASS}@redis-chatbot:6379/2
+    entrypoint: /bin/sh -c "export HOSTNAME=0.0.0.0 && ./viewer-entrypoint.sh"
 
 
   chatwoot-rails:
